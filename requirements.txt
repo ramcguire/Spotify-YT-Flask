@@ -1,0 +1,15 @@
+celery
+flask
+flask-bs4
+flask-login
+flask-migrate
+flask-sqlalchemy
+flask-wtf
+google-api-python-client
+google-auth-httplib2
+google-auth-oauthlib
+python-dotenv
+requests
+spotipy
+sqlalchemy-utils
+wtforms

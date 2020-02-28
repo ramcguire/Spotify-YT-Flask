@@ -1,0 +1,37 @@
+{% extends "main.html" %}
+
+
+{% block content %}
+{{ super() }}
+
+<div class="container">
+        <a class="btn btn-primary" data-toggle="collapse" href="#songTable" role="button" aria-expanded="false"
+                aria-controls="songTable">Show Results</a>
+        <div class="collapse" id="songTable">
+                <table class="table table-sm table-hover table-responsive">
+                        <thead>
+                                <tr>
+                                        <th scope="col">Song Name</th>
+                                        <th scope="col"> Artist(s)</th>
+                                        <th scope="col">Length (seconds)</th>
+                                </tr>
+                        </thead>
+                        <tbody>
+
+                                {% for item in songs %}
+                                <tr>
+                                        <th scope="row">{{ item[0] }}</th>
+                                        <td>{{ item[1] }}</td>
+                                        <td>{{ item[2] }}</td>
+                                </tr>
+                                {% endfor %}
+
+                        </tbody>
+                </table>
+        </div>
+
+</div>
+
+
+
+{% endblock %}

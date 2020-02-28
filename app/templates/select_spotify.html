@@ -1,0 +1,202 @@
+{% extends "main.html" %}
+
+{% block header %}
+{{ super() }}
+<style>
+    .progress {
+        width: 100%;
+        text-align: center;
+    }
+</style>
+
+
+{% endblock %}
+
+{% block content %}
+{{ super() }}
+
+<div class="container">
+
+    <h1>Select a Spotify playlist</h1>
+    {{ quick_form(form) }}
+    <div id="progress"></div>
+
+</div>
+
+
+
+{% endblock %}
+
+{% block scripts %}
+{{ super() }} 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/nanobar/0.4.2/nanobar.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $("#btnSubmit").click(function () {
+            console.log("button was clicked...");
+            // disable button
+            $(this).prop("disabled", true);
+            // add spinner to button
+            $(this).html(
+                `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Loading...`
+            );
+        });
+    });
+</script>
+
+<script>
+    $(document).ready(function () {
+        var request;
+
+        // Bind to the submit event of our form
+        $("#SpotifyPlaylistSearch").submit(function (event) {
+            // add task status elements 
+            div = $(
+                '<div class="progress"><div></div><div>0%</div><div>...</div><div>&nbsp;</div></div><hr>');
+            $('#progress').append(div);
+            // create a progress bar
+            var nanobar = new Nanobar({
+                bg: '#44f',
+                target: div[0].childNodes[0]
+            });
+
+            // Prevent default posting of form - put here to work in case of errors
+            event.preventDefault();
+
+            // Abort any pending request
+            if (request) {
+                request.abort();
+            }
+            // setup some local variables
+            var $form = $(this);
+
+            // Let's select and cache all the fields
+            var $inputs = $form.find("input, select, button, textarea");
+
+            // Serialize the data in the form
+            var serializedData = $form.serialize();
+
+            // Let's disable the inputs for the duration of the Ajax request.
+            // Note: we disable elements AFTER the form data has been serialized.
+            // Disabled form elements will not be serialized.
+            $inputs.prop("disabled", true);
+
+            console.log("sending ajax request");
+            console.log(serializedData);
+
+            $.ajax({
+                url: "/scrape_spotify",
+                type: "post",
+                data: serializedData,
+                success: function (data, status, request) {
+                    status_url = request.getResponseHeader('Location');
+                    update_progress(status_url, nanobar, div[0]);
+                },
+                error: function () {
+                    alert('Unexpected Error!');
+                }
+            });
+
+
+        });
+
+    });
+
+    function update_progress(status_url, nanobar, status_div) {
+        // send GET request to status url
+        $.getJSON(status_url, function (data) {
+            // update nanobar
+            percent = parseInt(data['current'] * 100 / data['total']);
+            nanobar.go(percent);
+            $(status_div.childNodes[1]).text(percent + '%');
+            $(status_div.childNodes[2]).text(data['status']);
+            if (data['state'] != 'PENDING' && data['state'] != 'PROGRESS') {
+                if (data['state'] == 'SUCCESS') {
+                    // redirect to page
+                    console.log("should be successful...");
+                    window.location.href = "/show_songs";
+                    return;
+                } else {
+                    // something unexpected happened
+                    $(status_div.childNodes[3]).text('Result: ' + data['state']);
+                }
+            } else {
+
+
+                setTimeout(function () {
+                    update_progress(status_url, nanobar, status_div);
+                }, 1500);
+            }
+
+        });
+    }
+</script>
+
+<script>
+    /*
+$(document).ready(function() {
+// Variable to hold request
+var request;
+
+
+// Bind to the submit event of our form
+$("#SpotifyPlaylistSearch").submit(function(event){
+
+    // Prevent default posting of form - put here to work in case of errors
+    event.preventDefault();
+
+    // Abort any pending request
+    if (request) {
+        request.abort();
+    }
+    // setup some local variables
+    var $form = $(this);
+
+    // Let's select and cache all the fields
+    var $inputs = $form.find("input, select, textarea");
+
+    // Serialize the data in the form
+    var serializedData = $form.serialize();
+
+    // Let's disable the inputs for the duration of the Ajax request.
+    // Note: we disable elements AFTER the form data has been serialized.
+    // Disabled form elements will not be serialized.
+    $inputs.prop("disabled", true);
+
+    console.log("sending ajax request")
+    // Fire off the request to /scrape_spotify
+    request = $.ajax({
+        url: "/scrape_spotify",
+        type: "post",
+        data: serializedData
+    });
+
+    // Callback handler that will be called on success
+    request.done(function (response, textStatus, jqXHR){
+        // Log a message to the console
+        console.log("Returned success from endpoint, started task");
+    });
+
+    // Callback handler that will be called on failure
+    request.fail(function (jqXHR, textStatus, errorThrown){
+        // Log the error to the console
+        console.error(
+            "The following error occurred: "+
+            textStatus, errorThrown
+        );
+    });
+
+    // Callback handler that will be called regardless
+    // if the request failed or succeeded
+    request.always(function () {
+        // Reenable the inputs
+        $inputs.prop("disabled", false);
+    });
+
+});
+});
+*/
+</script>
+
+
+{% endblock %}

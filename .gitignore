@@ -123,3 +123,8 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+.flaskenv
+*.rdb
+*.json
+app.db
